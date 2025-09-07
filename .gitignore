@@ -1,0 +1,36 @@
+# Node.js (only if you're using npm)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# macOS
+.DS_Store
+
+# VS Code
+.vscode/
+
+# Logs
+logs/
+*.log
+log.txt
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS temp files
+Thumbs.db
+desktop.ini
+
+# Optional: build/dist directories (e.g. if you're using a bundler)
+dist/
+build/
+
+# Optional: coverage reports
+coverage/
+
+# Optional: cache folders
+.cache/
+.parcel-cache/
