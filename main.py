@@ -32,7 +32,6 @@ async def main():
         today_str = date_today.strftime(DATE_FORMAT)
         one_year_ago_str = date(date_today.year - 1, date_today.month, date_today.day).strftime(DATE_FORMAT)
 
-        # Calling tool: get_stock_price_date_range with params: {'symbol': 'C2PU.SI', 'start_date': '2024-09-08', 'end_date': '2025-09-07'}
         for ticker in TICKERS:
             params = {
                 "symbol": ticker,
@@ -42,15 +41,25 @@ async def main():
             print(f"\nCalling tool: {TOOL_NAME} with params: {params}")
             result = await session.call_tool(TOOL_NAME, params)
 
-            # Pretty-print result content
-            print("\nResult:")
             for item in result.content:
-                if getattr(item, "text", None) is not None:
-                    print(item.text)
-                elif getattr(item, "json", None) is not None:
-                    print(json.dumps(item.json, indent=2, ensure_ascii=False))
-                else:
-                    print(repr(item))
+                min_and_max_prices = get_price_range(extract_payload(item))
+                print(f"{ticker:}\t{min_and_max_prices[0]}\t{min_and_max_prices[1]}")
+
+
+def get_price_range(payload):
+    return [min(payload.values()), min(payload.values())]
+
+
+def extract_payload(item) -> dict[str, float]:
+    if getattr(item, "json", None) is not None:
+        return json.loads(item.json())
+    elif getattr(item, "text", None) is not None:
+        try:
+            return json.loads(item.text)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    else:
+        return {}
 
 
 async def create_session(stack):
