@@ -12,12 +12,12 @@ SERVER_PARAMS = StdioServerParameters(
     env=None
 )
 
-TICKER = "AAPL"
+TICKER = "C2PU.SI"
 
 # Try a few common tool names; adjust once you see the exact names from your server
 CANDIDATE_TOOLS = [
-    ("get_current_stock_price", {"symbol": TICKER}),
-    ("get_stock_price_date_range", {"symbol": TICKER})
+    # ("get_current_stock_price", {"symbol": TICKER}),
+    ("get_stock_price_date_range", {"symbol": TICKER, "start_date": "2024-09-08", "end_date": "2025-09-07"})
 ]
 
 
@@ -35,6 +35,8 @@ async def main():
         print("\nAvailable tools:")
         for t in tools:
             print(f" - {t.name}: {t.description or ''}")
+            # if t.name == "get_stock_price_date_range":
+            #     print(json.dumps(t.dict(), indent=2))
 
         # 4) Pick a quote tool, if present
         tool_names = {t.name for t in tools}
