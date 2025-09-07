@@ -1,6 +1,7 @@
 import asyncio
 import json
 from contextlib import AsyncExitStack
+from datetime import date
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -12,48 +13,53 @@ SERVER_PARAMS = StdioServerParameters(
     env=None
 )
 
-TICKER = "C2PU.SI"
+TICKERS = {
+    "C2PU.SI",
+    "A17U.SI",
+}
 
-CANDIDATE_TOOLS = [
-    ("get_stock_price_date_range", {"symbol": TICKER, "start_date": "2024-09-08", "end_date": "2025-09-07"})
-]
+DATE_FORMAT = "%Y-%m-%d"
+TOOL_NAME = "get_stock_price_date_range"
+START_DATE_PARAM = "start_date"
+END_DATE_PARAM = "end_date"
 
 
 async def main():
     async with AsyncExitStack() as stack:
-        # 1) Start server via stdio
-        read, write = await stack.enter_async_context(stdio_client(SERVER_PARAMS))
-        # 2) Create session
-        session = await stack.enter_async_context(ClientSession(read, write))
-        await session.initialize()
+        session = await create_session(stack)
 
-        # 3) List tools
-        resp = await session.list_tools()
-        tools = resp.tools
-        print("\nAvailable tools:")
-        for t in tools:
-            print(f" - {t.name}: {t.description or ''}")
+        date_today = date.today()
+        today_str = date_today.strftime(DATE_FORMAT)
+        one_year_ago_str = date(date_today.year - 1, date_today.month, date_today.day).strftime(DATE_FORMAT)
 
-        # 4) Pick a quote tool, if present
-        tool_names = {t.name for t in tools}
-        choice = next(((n, p) for n, p in CANDIDATE_TOOLS if n in tool_names), None)
-        if not choice:
-            print("\nNo known quote tool found. Pick one from the list above and call it explicitly.")
-            return
+        # Calling tool: get_stock_price_date_range with params: {'symbol': 'C2PU.SI', 'start_date': '2024-09-08', 'end_date': '2025-09-07'}
+        for ticker in TICKERS:
+            params = {
+                "symbol": ticker,
+                START_DATE_PARAM: one_year_ago_str,
+                END_DATE_PARAM: today_str,
+            }
+            print(f"\nCalling tool: {TOOL_NAME} with params: {params}")
+            result = await session.call_tool(TOOL_NAME, params)
 
-        name, params = choice
-        print(f"\nCalling tool: {name} with params: {params}")
-        result = await session.call_tool(name, params)
+            # Pretty-print result content
+            print("\nResult:")
+            for item in result.content:
+                if getattr(item, "text", None) is not None:
+                    print(item.text)
+                elif getattr(item, "json", None) is not None:
+                    print(json.dumps(item.json, indent=2, ensure_ascii=False))
+                else:
+                    print(repr(item))
 
-        # 5) Pretty-print result content
-        print("\nResult:")
-        for item in result.content:
-            if getattr(item, "text", None) is not None:
-                print(item.text)
-            elif getattr(item, "json", None) is not None:
-                print(json.dumps(item.json, indent=2, ensure_ascii=False))
-            else:
-                print(repr(item))
+
+async def create_session(stack):
+    # 1) Start server via stdio
+    read, write = await stack.enter_async_context(stdio_client(SERVER_PARAMS))
+    # 2) Create session
+    session = await stack.enter_async_context(ClientSession(read, write))
+    await session.initialize()
+    return session
 
 
 if __name__ == "__main__":
