@@ -1,7 +1,7 @@
 import asyncio
 import json
 from contextlib import AsyncExitStack
-from datetime import date
+from datetime import date, timedelta
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
@@ -30,8 +30,7 @@ async def main():
 
         date_today = date.today()
         today_str = date_today.strftime(DATE_FORMAT)
-        one_year_ago_str = date(date_today.year - 1, date_today.month, date_today.day).strftime(DATE_FORMAT)
-
+        one_year_ago_str = (date_today - timedelta(days=365)).strftime(DATE_FORMAT)
         for ticker in TICKERS:
             params = {
                 "symbol": ticker,
