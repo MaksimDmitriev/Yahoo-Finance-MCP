@@ -38,7 +38,6 @@ async def main():
                 START_DATE_PARAM: one_year_ago_str,
                 END_DATE_PARAM: today_str,
             }
-            print(f"\nCalling tool: {TOOL_NAME} with params: {params}")
             result = await session.call_tool(TOOL_NAME, params)
 
             for item in result.content:
