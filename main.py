@@ -47,14 +47,12 @@ async def main():
 
 
 def get_price_range(payload):
-    return [min(payload.values()), min(payload.values())]
+    return [min(payload.values()), max(payload.values())]
 
 
 def extract_payload(item) -> dict[str, float]:
-    if getattr(item, "json", None) is not None:
-        return json.loads(item.json())
-    elif getattr(item, "text", None) is not None:
-        try:
+    if getattr(item, "text", None) is not None:
+        try: # return [min(payload.values()), max(payload.values())]
             return json.loads(item.text)
         except (json.JSONDecodeError, TypeError):
             return {}
