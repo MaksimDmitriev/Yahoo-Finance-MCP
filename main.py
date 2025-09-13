@@ -51,7 +51,7 @@ def get_price_range(payload):
 
 def extract_payload(item) -> dict[str, float]:
     if getattr(item, "text", None) is not None:
-        try: # return [min(payload.values()), max(payload.values())]
+        try:
             return json.loads(item.text)
         except (json.JSONDecodeError, TypeError):
             return {}
